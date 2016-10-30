@@ -44,8 +44,8 @@
       <file leaf-file-name="main.cpp" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="438">
-              <caret line="440" column="24" selection-start-line="440" selection-start-column="24" selection-end-line="440" selection-end-column="24" />
+            <state relative-caret-position="47">
+              <caret line="464" column="20" selection-start-line="464" selection-start-column="20" selection-end-line="464" selection-end-column="20" />
               <folding>
                 <element signature="e#0#19#0" expanded="true" />
                 <element signature="e#4060#4293#0" expanded="false" />
@@ -58,17 +58,12 @@
                 <element signature="e#11096#13432#0" expanded="false" />
                 <element signature="e#13434#13877#0" expanded="false" />
                 <element signature="e#13879#14159#0" expanded="false" />
-                <element signature="e#14161#14605#0" expanded="false" />
-                <element signature="e#14607#15165#0" expanded="false" />
-                <element signature="e#15167#15877#0" expanded="false" />
-                <element signature="e#15879#16319#0" expanded="false" />
-                <marker date="1477844805452" expanded="false" signature="204:368" ph="{...}" />
-                <marker date="1477844805452" expanded="false" signature="404:858" ph="{...}" />
-                <marker date="1477844805452" expanded="false" signature="878:1771" ph="{...}" />
-                <marker date="1477844805452" expanded="false" signature="1882:2690" ph="{...}" />
-                <marker date="1477844805452" expanded="false" signature="2752:4058" ph="{...}" />
-                <marker date="1477844805452" expanded="false" signature="4325:4407" ph="{...}" />
-                <marker date="1477844805452" expanded="false" signature="4757:5478" ph="{...}" />
+                <marker date="1477845525634" expanded="false" signature="404:858" ph="{...}" />
+                <marker date="1477845525634" expanded="false" signature="878:1771" ph="{...}" />
+                <marker date="1477845525634" expanded="false" signature="1882:2690" ph="{...}" />
+                <marker date="1477845525634" expanded="false" signature="2752:4058" ph="{...}" />
+                <marker date="1477845525634" expanded="false" signature="4325:4407" ph="{...}" />
+                <marker date="1477845525634" expanded="false" signature="4757:5478" ph="{...}" />
               </folding>
             </state>
           </provider>
@@ -389,8 +384,13 @@
           <line>433</line>
           <option name="timeStamp" value="2" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/main.cpp</url>
+          <line>494</line>
+          <option name="timeStamp" value="6" />
+        </line-breakpoint>
       </breakpoints>
-      <option name="time" value="6" />
+      <option name="time" value="7" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -419,17 +419,12 @@
             <element signature="e#11096#13432#0" expanded="false" />
             <element signature="e#13434#13877#0" expanded="false" />
             <element signature="e#13879#14159#0" expanded="false" />
-            <element signature="e#14161#14605#0" expanded="false" />
-            <element signature="e#14607#15165#0" expanded="false" />
-            <element signature="e#15167#15877#0" expanded="false" />
-            <element signature="e#15879#16319#0" expanded="false" />
-            <marker date="1477844805452" expanded="false" signature="204:368" ph="{...}" />
-            <marker date="1477844805452" expanded="false" signature="404:858" ph="{...}" />
-            <marker date="1477844805452" expanded="false" signature="878:1771" ph="{...}" />
-            <marker date="1477844805452" expanded="false" signature="1882:2690" ph="{...}" />
-            <marker date="1477844805452" expanded="false" signature="2752:4058" ph="{...}" />
-            <marker date="1477844805452" expanded="false" signature="4325:4407" ph="{...}" />
-            <marker date="1477844805452" expanded="false" signature="4757:5478" ph="{...}" />
+            <marker date="1477845525634" expanded="false" signature="404:858" ph="{...}" />
+            <marker date="1477845525634" expanded="false" signature="878:1771" ph="{...}" />
+            <marker date="1477845525634" expanded="false" signature="1882:2690" ph="{...}" />
+            <marker date="1477845525634" expanded="false" signature="2752:4058" ph="{...}" />
+            <marker date="1477845525634" expanded="false" signature="4325:4407" ph="{...}" />
+            <marker date="1477845525634" expanded="false" signature="4757:5478" ph="{...}" />
           </folding>
         </state>
       </provider>
@@ -474,17 +469,12 @@
             <element signature="e#11096#13432#0" expanded="false" />
             <element signature="e#13434#13877#0" expanded="false" />
             <element signature="e#13879#14159#0" expanded="false" />
-            <element signature="e#14161#14605#0" expanded="false" />
-            <element signature="e#14607#15165#0" expanded="false" />
-            <element signature="e#15167#15877#0" expanded="false" />
-            <element signature="e#15879#16319#0" expanded="false" />
-            <marker date="1477844805452" expanded="false" signature="204:368" ph="{...}" />
-            <marker date="1477844805452" expanded="false" signature="404:858" ph="{...}" />
-            <marker date="1477844805452" expanded="false" signature="878:1771" ph="{...}" />
-            <marker date="1477844805452" expanded="false" signature="1882:2690" ph="{...}" />
-            <marker date="1477844805452" expanded="false" signature="2752:4058" ph="{...}" />
-            <marker date="1477844805452" expanded="false" signature="4325:4407" ph="{...}" />
-            <marker date="1477844805452" expanded="false" signature="4757:5478" ph="{...}" />
+            <marker date="1477845525634" expanded="false" signature="404:858" ph="{...}" />
+            <marker date="1477845525634" expanded="false" signature="878:1771" ph="{...}" />
+            <marker date="1477845525634" expanded="false" signature="1882:2690" ph="{...}" />
+            <marker date="1477845525634" expanded="false" signature="2752:4058" ph="{...}" />
+            <marker date="1477845525634" expanded="false" signature="4325:4407" ph="{...}" />
+            <marker date="1477845525634" expanded="false" signature="4757:5478" ph="{...}" />
           </folding>
         </state>
       </provider>
@@ -515,8 +505,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="438">
-          <caret line="440" column="24" selection-start-line="440" selection-start-column="24" selection-end-line="440" selection-end-column="24" />
+        <state relative-caret-position="47">
+          <caret line="464" column="20" selection-start-line="464" selection-start-column="20" selection-end-line="464" selection-end-column="20" />
           <folding>
             <element signature="e#0#19#0" expanded="true" />
             <element signature="e#4060#4293#0" expanded="false" />
@@ -529,17 +519,12 @@
             <element signature="e#11096#13432#0" expanded="false" />
             <element signature="e#13434#13877#0" expanded="false" />
             <element signature="e#13879#14159#0" expanded="false" />
-            <element signature="e#14161#14605#0" expanded="false" />
-            <element signature="e#14607#15165#0" expanded="false" />
-            <element signature="e#15167#15877#0" expanded="false" />
-            <element signature="e#15879#16319#0" expanded="false" />
-            <marker date="1477844805452" expanded="false" signature="204:368" ph="{...}" />
-            <marker date="1477844805452" expanded="false" signature="404:858" ph="{...}" />
-            <marker date="1477844805452" expanded="false" signature="878:1771" ph="{...}" />
-            <marker date="1477844805452" expanded="false" signature="1882:2690" ph="{...}" />
-            <marker date="1477844805452" expanded="false" signature="2752:4058" ph="{...}" />
-            <marker date="1477844805452" expanded="false" signature="4325:4407" ph="{...}" />
-            <marker date="1477844805452" expanded="false" signature="4757:5478" ph="{...}" />
+            <marker date="1477845525634" expanded="false" signature="404:858" ph="{...}" />
+            <marker date="1477845525634" expanded="false" signature="878:1771" ph="{...}" />
+            <marker date="1477845525634" expanded="false" signature="1882:2690" ph="{...}" />
+            <marker date="1477845525634" expanded="false" signature="2752:4058" ph="{...}" />
+            <marker date="1477845525634" expanded="false" signature="4325:4407" ph="{...}" />
+            <marker date="1477845525634" expanded="false" signature="4757:5478" ph="{...}" />
           </folding>
         </state>
       </provider>

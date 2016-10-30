@@ -447,8 +447,8 @@ pair <int, int> is_mp() {
             t.second = brackets_check(t.second);
             if (t.second == s) {
                 set<string>::iterator my = proof.find(t.first);
-                if (my != proof.end());
-                return make_pair(proof_number[*it], proof_number[t.first]);
+                if (my != proof.end())
+                    return make_pair(proof_number[*it], proof_number[t.first]);
             }
         }
     }
