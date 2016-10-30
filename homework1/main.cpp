@@ -357,7 +357,7 @@ bool is_8_axiom(string tmp) {
                     if (t1.first[i] != t3.first[i])
                         return false;
                 for (size_t i = 0; i < n2; i++)
-                    if (t2.first[i] != t3.first[n1 + i])
+                    if (t2.first[i] != t3.first[n1 + i + 1])
                         return false;
                 return t3.first[n1] == '|';
             } else if (n3 == n1 + n2 + 5 && t3.first[0] == '(' && t3.first[n1 + 1] == ')' && t3.first[n1 + 3] == '(' && t3.first[t3.first.size() - 1] == ')') {
