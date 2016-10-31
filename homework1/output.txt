@@ -1,1 +1,194 @@
-(1) A->A->A (Предп. 1)
+
+A
+B
+A
+B->A
+A->B->A
+A
+B
+A->B
+A
+B
+C
+B->C
+A->B->C
+A
+C
+A->C
+A->B->C->A->C
+A->B->A->B->C->A->C
+A
+B
+A
+B
+A&B
+B->A&B
+A->B->A&B
+A
+B
+A&B
+A
+A&B->A
+A
+B
+A&B
+B
+A&B->B
+A
+A
+B
+A|B
+A->A|B
+B
+A
+B
+A|B
+B->A|B
+A
+C
+A->C
+B
+C
+B->C
+A
+B
+A|B
+C
+A|B->C
+B->C->A|B->C
+A->C->B->C->A|B->C
+A
+B
+A->B
+A
+B
+!B
+A->!B
+A
+!A
+A->!B->!A
+A->B->A->!B->!A
+A
+!A
+!!A
+A
+!!A->A
+X
+X
+X->X
+X
+X
+X->X
+X
+X
+X->X
+X->X->X->X
+X->X->X->X->X->X
+(1) (X->X)->(X->X)->(X->X) (Сх. акс. 1)
+X
+X
+X->X
+X
+X
+X->X
+X
+X
+X->X
+X->X->X->X
+X->X->X->X->X->X
+X
+X
+X->X
+X
+X
+X->X
+X
+X
+X->X
+X->X->X->X
+X
+X
+X->X
+X->X->X->X->X->X
+X->X->X->X->X->X->X->X
+X
+X
+X->X
+X
+X
+X->X
+X->X->X->X
+X->X->X->X->X->X->X->X->X->X->X->X
+X->X->X->X->X->X->X->X->X->X->X->X->X->X->X->X->X->X
+(2) ((X->X)->(X->X)->(X->X))->((X->X)->((X->X)->(X->X))->(X->X))->((X->X)->(X->X)) (Сх. акс. 2)
+X
+X
+X->X
+X
+X
+X->X
+X
+X
+X->X
+X->X->X->X
+X
+X
+X->X
+X->X->X->X->X->X
+X->X->X->X->X->X->X->X
+(3) (X->X)->((X->X)->(X->X))->(X->X) (Сх. акс. 1)
+X
+X
+X->X
+X
+X
+X->X
+X
+X
+X->X
+X->X->X->X
+X
+X
+X->X
+X->X->X->X->X->X
+X->X->X->X->X->X->X->X
+X
+X
+X->X
+X
+X
+X->X
+X->X->X->X
+X->X->X->X->X->X->X->X->X->X->X->X
+(4) ((X->X)->((X->X)->(X->X))->(X->X))->((X->X)->(X->X)) 
+-> !!! 0 X->X->X->X->X->X L: X->X R: X->X->X->X
+
+-> (M.P. 2, 1)
+X
+X
+X->X
+X->X 
+X->X->X->X 
+(5) (X->X)->(X->X)  
+-> !!! 0 X->X->X->X->X->X L: X->X R: X->X->X->X
+
+-> !!! 1 X->X->X->X->X->X->X->X->X->X->X->X->X->X->X->X->X->X L: X->X->X->X->X->X R: X->X->X->X->X->X->X->X->X->X->X->X
+
+-> !!! 2 X->X->X->X->X->X->X->X L: X->X R: X->X->X->X->X->X
+
+-> !!! 3 X->X->X->X->X->X->X->X->X->X->X->X L: X->X->X->X->X->X->X->X R: X->X->X->X
+(Не доказано)
+X
+X
+X->X
+(6) X->X 
+-> !!! 0 X->X->X->X->X->X L: X->X R: X->X->X->X
+
+-> !!! 1 X->X->X->X->X->X->X->X->X->X->X->X->X->X->X->X->X->X L: X->X->X->X->X->X R: X->X->X->X->X->X->X->X->X->X->X->X
+
+-> !!! 2 X->X->X->X->X->X->X->X L: X->X R: X->X->X->X->X->X
+
+-> !!! 3 X->X->X->X->X->X->X->X->X->X->X->X L: X->X->X->X->X->X->X->X R: X->X->X->X
+
+-> !!! 4 X->X->X->X  L: X->X R: X->X 
+(Не доказано)
