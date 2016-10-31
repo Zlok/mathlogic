@@ -185,7 +185,7 @@ struct expression {
 
     expression(std::string s) {
         std::string tmp = my_split(s);
-        expr = std::shared_ptr<node>(new node(s));
+        expr = std::shared_ptr<node>(new node(tmp));
         expr->parse();
     }
 
@@ -273,7 +273,7 @@ expression tmp;
 int is_assump() {
     size_t n = assumps.size();
     for (size_t i = 0; i < n; i++) {
-        if (tmp.expr == assumps[i].expr)
+        if (*(tmp.expr) == *(assumps[i].expr))
             return i + 1;
     }
     return 0;
@@ -299,11 +299,11 @@ std::pair<int, int> is_mp() {
     return std::make_pair(0, 0);
 };
 
-std::string s;
+std::string str;
 
 void check() {
     static unsigned counter = 1;
-    std::cout << "(" << counter << ")" << " " << s << " ";
+    std::cout << "(" << counter << ")" << " " << str << " ";
     counter++;
     int t1 = is_assump();
     if (t1)
@@ -330,8 +330,8 @@ int main() {
     h = my_split(h);
     parse_head(h);
     create_axioms();
-    while (getline(std::cin, s)) {
-        tmp = s;
+    while (getline(std::cin, str)) {
+        tmp = str;
         check();
         proofs.push_back(tmp);
     }
