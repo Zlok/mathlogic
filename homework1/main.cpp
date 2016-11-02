@@ -166,8 +166,8 @@ struct expression {
             if (oper.size()) {
                 if (oper != other.oper)
                     return false;
-                //if (value != other.value)
-                  //  return false;
+                if (value != other.value)
+                    return false;
                 return ((oper == "!" || (*left == *(other.left))) && (*right == *(other.right)));
             } else {
                 if (other.oper.size())
