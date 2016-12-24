@@ -8,6 +8,7 @@
 #include <memory>
 #include <vector>
 #include <map>
+#include <ctime>
 
 std::string my_split(std::string tmp) {
     std::string t;
@@ -323,8 +324,9 @@ void check() {
 }
 
 int main() {
-//    freopen("input.txt", "r", stdin);
-//    freopen("output.txt", "w", stdout);
+    freopen("input.txt", "r", stdin);
+    freopen("output.txt", "w", stdout);
+    double tin = std::time(NULL);
     std::string h;
     getline(std::cin, h);
     h = my_split(h);
@@ -335,5 +337,7 @@ int main() {
         check();
         proofs.push_back(tmp);
     }
+    double tout = std::time(NULL);
+    std::cout << "Время работы: " << tout - tin << std::endl;
     return 0;
 }
