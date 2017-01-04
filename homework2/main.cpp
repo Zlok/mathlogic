@@ -408,9 +408,9 @@ struct global_parser {
         axioms.push_back(expression_parser("a+0=a"));
         axioms.push_back(expression_parser("a*0=0"));
         axioms.push_back(expression_parser("a*b\'=a*b+a"));
-        axioms.push_back(expression_parser("@xA(x)->A(q)")); // q свободно в А
-        axioms.push_back(expression_parser("A(q)->?xA(x)")); // q свободно в А
-        axioms.push_back(expression_parser("A(0)&@x(A(x)->A(x'))->A")); // x свободно в А
+        //axioms.push_back(expression_parser("@xA(x)->A(q)")); // q свободно в А
+        //axioms.push_back(expression_parser("A(q)->?xA(x)")); // q свободно в А
+        //axioms.push_back(expression_parser("A(0)&@x(A(x)->A(x'))->A")); // x свободно в А
     }
     void draw_axioms() {
         size_t tmp = axioms.size();
@@ -461,9 +461,13 @@ struct global_parser {
                     return;
                 }
             }
-        size_t tmp = end_proof.size();
-        for (size_t i = 0; i < tmp; i++)
-            std::cout << end_proof[i] << std::endl;
+        if (proof[proof.size() - 1] == final) {
+            size_t tmp = end_proof.size();
+            for (size_t i = 0; i < tmp; i++)
+                std::cout << end_proof[i] << std::endl;
+        } else {
+            std::cout << "Доказательство не окончено..." << std::endl;
+        }
     }
 
     bool check() {
@@ -519,10 +523,11 @@ struct global_parser {
                 end_proof.push_back("("+assumptions[assumptions.size() - 1].value+")->("+t.value+")");
                 return true;
             }
-    /*    for (size_t i = tmp - 3; i < tmp; i++) {
-            std::map< std::shared_ptr<expression>, std::shared_ptr<expression> > match;
-            if (equal_axiom(t.root, axioms[i].root, match))
-                if (check_liberty(match, i - tmp + 4)) {
+
+        if (t.root->op == "->") {
+            if (t.root->left->op == "@") {
+                std::map< std::shared_ptr<expression>, std::shared_ptr<expression> > match;
+                if (equal_axiom_(t.root->right, t.root->left->right, match, t.root->left->left->value)) {
                     if (assumptions.size() == 0) {
                         end_proof.push_back(t.value);
                         return true;
@@ -532,7 +537,34 @@ struct global_parser {
                     end_proof.push_back("("+assumptions[assumptions.size() - 1].value+")->("+t.value+")");
                     return true;
                 }
-        }*/
+            } else if (t.root->right->op == "?") {
+                std::map< std::shared_ptr<expression>, std::shared_ptr<expression> > match;
+                if (equal_axiom_(t.root->left, t.root->right->right, match, t.root->right->left->value)) {
+                    if (assumptions.size() == 0) {
+                        end_proof.push_back(t.value);
+                        return true;
+                    }
+                    end_proof.push_back(t.value);
+                    end_proof.push_back("("+t.value+")->("+assumptions[assumptions.size() - 1].value+")->("+t.value+")");
+                    end_proof.push_back("("+assumptions[assumptions.size() - 1].value+")->("+t.value+")");
+                    return true;
+                }
+            }/* else if (t.root->left->op == "&" && t.root->left->right->op == "@" && t.root->left->right->right->op == "->") {
+                std::map< std::shared_ptr<expression>, std::shared_ptr<expression> > match;
+                if (equal_axiom_(t.root->left->right->right->right, t.root->left->right->right->left, match, t.root->left->right->left->value)
+                    && *(match[t.root->left->right->left]) == *(expression_parser("("+t.root->left->right->left->value + ")\'").root))
+                    if (equal_axiom_(t.root->left, t.root->right->right, match, t.root->right->left->value)) {
+                        if (assumptions.size() == 0) {
+                            end_proof.push_back(t.value);
+                            return true;
+                        }
+                        end_proof.push_back(t.value);
+                        end_proof.push_back("("+t.value+")->("+assumptions[assumptions.size() - 1].value+")->("+t.value+")");
+                        end_proof.push_back("("+assumptions[assumptions.size() - 1].value+")->("+t.value+")");
+                        return true;
+                    }
+            }*/
+        }
         return false;
     }
 
@@ -611,6 +643,36 @@ struct global_parser {
             return false;
         }
     }
+    bool equal_axiom_(std::shared_ptr<expression> ex, std::shared_ptr<expression> ax, std::map< std::shared_ptr<expression>, std::shared_ptr<expression> >& match, std::string v) {
+        if (ax->left == NULL && ax->right == NULL) {
+            if (ax->value == v || ax->value == ex->value) {
+                std::map<std::shared_ptr<expression>, std::shared_ptr<expression> >::iterator it = match.find(ax);
+                if (it == match.end()) {
+                    match.insert(std::make_pair(ax, ex));
+                    return true;
+                } else {
+                    return (*match[ax] == *ex);
+                }
+            }
+            return false;
+        } else {
+            if (ex->op == ax->op)
+                if (ex->op != "") {
+                    if (ex->left == NULL || equal_axiom(ex->left, ax->left, match))
+                        if (ex->right == NULL || equal_axiom(ex->right, ax->right, match))
+                                return true;
+                } else
+                    if (ax->left->value == ex->left->value && ax->terms.size() == ex->terms.size()) {
+                        size_t  tmp = ex->terms.size();
+                        for (size_t i = 0; i < tmp; i++)
+                            if (!equal_axiom_(ex->terms[i], ax->terms[i], match, v))
+                                return false;
+                        return true;
+                    }
+        }
+        return false;
+    }
+
 private:
     std::string my_split(std::string t) {
         std::string tmp;
