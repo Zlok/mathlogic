@@ -618,13 +618,13 @@ struct global_parser {
     }
     bool equal_axiom(std::shared_ptr<expression> ex, std::shared_ptr<expression> ax, std::map< std::shared_ptr<expression>, std::shared_ptr<expression> >& match) {
         if (ax->left == NULL && ax->right == NULL) {
-            std::map< std::shared_ptr<expression>, std::shared_ptr<expression> >::iterator it = match.find(ax);
-            if (it == match.end()) {
-                match.insert(std::make_pair(ax, ex));
-                return true;
-            } else {
-                return (*match[ax] == *ex);
+            std::map< std::shared_ptr<expression>, std::shared_ptr<expression> >::iterator it = match.begin();
+            for (it; it != match.end(); it++)
+                if (*(it->first) == *ax) {
+                return (*(it->second) == *ex);
             }
+            match.insert(std::make_pair(ax, ex));
+            return true;
         } else {
             if (ex->op == ax->op) {
                 if (ex->left == NULL || equal_axiom(ex->left, ax->left, match))
