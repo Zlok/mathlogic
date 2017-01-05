@@ -91,6 +91,7 @@ struct implication : expression {
         left = l;
         right = r;
         op = "->";
+        value = "(" + l->value + ")->(" + r->value + ")";
     }
 };
 
@@ -99,6 +100,7 @@ struct disjunction : expression {
         left = l;
         right = r;
         op = "|";
+        value = "(" + l->value + ")|(" + r->value + ")";
     }
 };
 
@@ -107,6 +109,7 @@ struct conjunction : expression {
         left = l;
         right = r;
         op = "&";
+       value = "(" + l->value + ")&(" + r->value + ")";
     }
 };
 
@@ -114,6 +117,7 @@ struct negation : expression {
     negation(std::shared_ptr<expression> l) : expression() {
         left = l;
         op = "!";
+        value = "!(" + l->value + ")";
     }
 };
 
@@ -128,6 +132,7 @@ struct quantifier : expression {
         left = l;
         right = r;
         op = c;
+        value = c + l->value + "(" + r->value + ")";
     }
 };
 
@@ -141,6 +146,14 @@ struct predication : expression {
     predication(std::shared_ptr<expression> l, std::vector< std::shared_ptr<expression> > t) : expression() {
         left = l;
         terms = t;
+        value = l->value;
+        if (t.size() != 0) {
+            size_t tmp = t.size();
+            value = value + "(";
+            for (size_t i = 0; i < tmp - 1; i++)
+                value = value + t[i]->value + ", ";
+            value = value + t[tmp - 1]->value + ")";
+        }
     }
 };
 
@@ -149,6 +162,7 @@ struct equality : expression {
         left = l;
         right = r;
         op = "=";
+        value = "(" + l->value + ")=(" + r->value + ")";
     }
 };
 
@@ -157,6 +171,7 @@ struct addition : expression {
         left = l;
         right = r;
         op = "+";
+        value = "(" + l->value + ")+(" + r->value + ")";
     }
 };
 
@@ -165,6 +180,7 @@ struct multiplication : expression {
         left = l;
         right = r;
         op = "*";
+        value = "(" + l->value + ")*(" + r->value + ")";
     }
 };
 
@@ -172,6 +188,7 @@ struct next : expression {
     next(std::shared_ptr<expression> l) : expression() {
         left = l;
         op = "\'";
+        value = "(" + l->value + ")\'";
     }
 };
 
@@ -179,6 +196,14 @@ struct term : expression {
     term(std::shared_ptr<expression> l, std::vector< std::shared_ptr<expression> > t) : expression() {
         left = l;
         terms = t;
+        value = l->value;
+        if (t.size() != 0) {
+            size_t tmp = t.size();
+            value = value + "(";
+            for (size_t i = 0; i < tmp - 1; i++)
+                value = value + t[i]->value + ", ";
+            value = value + t[tmp - 1]->value + ")";
+        }
     }
 };
 
@@ -199,10 +224,9 @@ struct expression_parser {
         my_split();
         parse();
     }
-
+    expression_parser(expression_parser const& other) : value(other.value), root(other.root) {
+    }
     bool operator==(expression_parser other) {
-        if (value.size() != other.value.size())
-            return false;
         return (*root == *(other.root));
     }
     void parse() {
@@ -388,6 +412,17 @@ struct global_parser {
     std::vector<std::string> end_proof;
     expression_parser final;
 
+    global_parser() {
+        add_axioms();
+        parse_assump_and_final();
+        parse_proof();
+    }
+
+    global_parser(std::string a) {
+        add_axioms();
+        parse_add_assump_and_final(a);
+    }
+
     void add_axioms() {
         axioms.push_back(expression_parser("a->b->a"));
         axioms.push_back(expression_parser("(a->b)->(a->b->c)->(a->c)"));
@@ -439,6 +474,10 @@ struct global_parser {
             } else {
                 tmp.push_back(s[i]);
                 i++;
+                if (s[i] == '(')
+                    balance++;
+                else if (s[i] == ')')
+                    balance--;
             }
         }
         final = expression_parser(tmp);
@@ -467,6 +506,48 @@ struct global_parser {
                 std::cout << end_proof[i] << std::endl;
         } else {
             std::cout << "Доказательство не окончено..." << std::endl;
+        }
+    }
+
+    void parse_add_assump_and_final(std::string s) {
+        s = my_split(s);
+        std::string tmp = "";
+        size_t n = s.size(), i = 0, balance = 0;
+        while (i < n) {
+            if (s[i] == '|' && s[i + 1] == '-') {
+                i += 2;
+                if (tmp != "")
+                    assumptions.push_back(expression_parser(tmp));
+                tmp = "";
+            } else if (balance == 0 && s[i] == ',') {
+                i++;
+                assumptions.push_back(expression_parser(tmp));
+                tmp = "";
+            } else {
+                tmp.push_back(s[i]);
+                i++;
+                if (s[i] == '(')
+                    balance++;
+                else if (s[i] == ')')
+                    balance--;
+            }
+        }
+        final = expression_parser(tmp);
+    }
+    std::vector<std::string> parse_add_proof(std::vector<std::string> t) {
+        size_t tmp = t.size();
+        std::string s;
+        for (size_t i = 0; i < tmp; i++) {
+            s = t[i];
+            if (s != "") {
+                proof.push_back(expression_parser(s));
+                if (!check()) {
+                    break;
+                }
+            }
+        }
+        if (proof[proof.size() - 1] == final) {
+            return end_proof;
         }
     }
 
@@ -601,17 +682,78 @@ struct global_parser {
         if (t.root->op == "->" && t.root->right->op == "@") {
             size_t tmp = proof.size();
             for (size_t i = 0; i < tmp; i++)
-                if (proof[i].root->op == "->" && *(proof[i].root->left) == *(t.root->left) && *(proof[i].root->right) == *(t.root->right->right))
+                if (proof[i].root->op == "->" && *(proof[i].root->left) == *(t.root->left) && *(proof[i].root->right) == *(t.root->right->right)) {
+                    if (assumptions.size() == 0)
+                        end_proof.push_back(t.value);
+                    else
+                        add_to_end_proof(i);
                     return true;
+                }
         } else if (t.root->op == "->" && t.root->left->op == "?") {
             size_t tmp = proof.size();
             for (size_t i = 0; i < tmp; i++)
-                if (proof[i].root->op == "->" && *(proof[i].root->right) == *(t.root->right) && *(proof[i].root->left) == *(t.root->left->right))
+                if (proof[i].root->op == "->" && *(proof[i].root->right) == *(t.root->right) && *(proof[i].root->left) == *(t.root->left->right)) {
+                    if (assumptions.size() == 0)
+                        end_proof.push_back(t.value);
+                    else
+                        add_to_end_proof(i);
                     return true;
+                }
         }
         return false;
     }
 
+    void add_to_end_proof(size_t id) {
+        expression_parser t = proof[proof.size() - 1], a = assumptions[assumptions.size() - 1];
+        if (t.root->right->op == "@") {
+            std::string ass;
+            std::shared_ptr<expression> b = proof[id].root->left, g = proof[id].root->right;
+            ass = "(" + a.value + ")->(" + proof[id].root->value + "),(" + a.value +")&(" + b->value
+                  + ")|-" + g->value;
+            global_parser tmp(ass);
+            std::vector<std::string> pr;
+            pr.push_back("((" + a.value +")&(" + b->value + "))->(" + a.value + ")");
+            pr.push_back("((" + a.value +")&(" + b->value + "))->(" + b->value + ")");
+            pr.push_back("(" + a.value + ")&(" + b->value + ")");
+            pr.push_back(a.value);
+            pr.push_back(b->value);
+            pr.push_back("(" + a.value + ")->(" + proof[id].root->value + ")");
+            pr.push_back(proof[id].root->value);
+            pr.push_back(g->value);
+            pr = tmp.parse_add_proof(pr);
+            ass = "(" + a.value + ")->(" + proof[id].root->value + ")|-((" + a.value + ")&(" + b->value + "))->(" + g->value + ")";
+            global_parser tmp2(ass);
+            pr = tmp2.parse_add_proof(pr);
+            size_t n = pr.size();
+            for (size_t i = 0; i < n; i++)
+                end_proof.push_back(pr[i]);
+            g = t.root->right;
+            end_proof.push_back("((" + a.value + ")&(" + b->value + "))->(" + g->value + ")");
+            ass = "((" + a.value + ")&(" + b->value + ")->(" + g->value + ")," + a.value + "," + b->value + "|-" + g->value;
+            global_parser tmp3(ass);
+            std::vector<std::string> pr2;
+            pr2.push_back("(" + a.value + ")->(" + b->value + ")->((" + a.value + ")&(" + b->value + "))");
+            pr2.push_back(a.value);
+            pr2.push_back(b->value);
+            pr2.push_back("(" + b->value + ")->((" + a.value + ")&(" + b->value + "))");
+            pr2.push_back("(" + a.value + ")&(" + b->value + ")");
+            pr2.push_back("((" + a.value + ")&(" + b->value + "))->(" + g->value + ")");
+            pr2.push_back(g->value);
+            pr2 = tmp3.parse_add_proof(pr2);
+            ass = "((" + a.value + ")&(" + b->value + ")->(" + g->value + ")," + a.value + "|-(" + b->value + ")->(" + g->value + ")";
+            global_parser tmp4(ass);
+            pr2 = tmp4.parse_add_proof(pr2);
+            ass = "((" + a.value + ")&(" + b->value + ")->(" + g->value + ")""|-(" + a.value + ")->(" + b->value + ")->(" + g->value + ")";
+            global_parser tmp5(ass);
+            pr2 = tmp5.parse_add_proof(pr2);
+            n = pr2.size();
+            for (size_t i = 0; i < n; i++)
+                end_proof.push_back(pr2[i]);
+            end_proof.push_back(t.value);
+        } else if (t.root->left->op == "?") {
+
+        }
+    }
     bool equal_axiom(expression_parser ex, expression_parser ax) {
         std::map< std::shared_ptr<expression>, std::shared_ptr<expression> > match;
         return equal_axiom(ex.root, ax.root, match);
@@ -689,8 +831,5 @@ int main() {
     freopen("input.txt", "r", stdin);
     freopen("output.txt", "w", stdout);
     global_parser tmp;
-    tmp.add_axioms();
-    tmp.parse_assump_and_final();
-    tmp.parse_proof();
     return 0;
 }
