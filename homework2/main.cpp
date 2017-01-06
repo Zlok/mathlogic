@@ -709,8 +709,7 @@ struct global_parser {
         if (t.root->right->op == "@") {
             std::string ass;
             std::shared_ptr<expression> b = proof[id].root->left, g = proof[id].root->right;
-            ass = "(" + a.value + ")->(" + proof[id].root->value + "),(" + a.value +")&(" + b->value
-                  + ")|-" + g->value;
+            ass = "(" + a.value + ")->(" + proof[id].root->value + "),(" + a.value +")&(" + b->value + ")|-" + g->value;
             global_parser tmp(ass);
             std::vector<std::string> pr;
             pr.push_back("((" + a.value +")&(" + b->value + "))->(" + a.value + ")");
@@ -728,6 +727,7 @@ struct global_parser {
             size_t n = pr.size();
             for (size_t i = 0; i < n; i++)
                 end_proof.push_back(pr[i]);
+            end_proof.push_back("((" + a.value + ")&(" + b->value + "))->(" + g->value + ")");
             g = t.root->right;
             end_proof.push_back("((" + a.value + ")&(" + b->value + "))->(" + g->value + ")");
             ass = "((" + a.value + ")&(" + b->value + "))->(" + g->value + ")," + a.value + "," + b->value + "|-" + g->value;
@@ -744,15 +744,15 @@ struct global_parser {
             ass = "((" + a.value + ")&(" + b->value + "))->(" + g->value + ")," + a.value + "|-(" + b->value + ")->(" + g->value + ")";
             global_parser tmp4(ass);
             pr2 = tmp4.parse_add_proof(pr2);
-            ass = "((" + a.value + ")&(" + b->value + ")->(" + g->value + ")""|-(" + a.value + ")->(" + b->value + ")->(" + g->value + ")";
+            ass = "((" + a.value + ")&(" + b->value + "))->(" + g->value + ")""|-(" + a.value + ")->(" + t.value + ")";
             global_parser tmp5(ass);
             pr2 = tmp5.parse_add_proof(pr2);
             n = pr2.size();
             for (size_t i = 0; i < n; i++)
                 end_proof.push_back(pr2[i]);
-            end_proof.push_back(t.value);
+            end_proof.push_back("(" + a.value + ")->(" + t.value + ")");
         } else if (t.root->left->op == "?") {
-            
+
         }
     }
     bool equal_axiom(expression_parser ex, expression_parser ax) {
