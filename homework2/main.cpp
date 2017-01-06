@@ -525,11 +525,11 @@ struct global_parser {
                 tmp = "";
             } else {
                 tmp.push_back(s[i]);
-                i++;
                 if (s[i] == '(')
                     balance++;
                 else if (s[i] == ')')
                     balance--;
+                i++;
             }
         }
         final = expression_parser(tmp);
@@ -679,10 +679,11 @@ struct global_parser {
 
     bool is_rule() {
         expression_parser t = proof[proof.size() - 1];
+        std::map< std::shared_ptr<expression>, std::shared_ptr<expression> > match;
         if (t.root->op == "->" && t.root->right->op == "@") {
             size_t tmp = proof.size();
             for (size_t i = 0; i < tmp; i++)
-                if (proof[i].root->op == "->" && *(proof[i].root->left) == *(t.root->left) && *(proof[i].root->right) == *(t.root->right->right)) {
+                if (proof[i].root->op == "->" && *(proof[i].root->left) == *(t.root->left) && equal_axiom_(proof[i].root->right, t.root->right->right, match, t.root->right->left->value)) {
                     if (assumptions.size() == 0)
                         end_proof.push_back(t.value);
                     else
@@ -692,7 +693,7 @@ struct global_parser {
         } else if (t.root->op == "->" && t.root->left->op == "?") {
             size_t tmp = proof.size();
             for (size_t i = 0; i < tmp; i++)
-                if (proof[i].root->op == "->" && *(proof[i].root->right) == *(t.root->right) && *(proof[i].root->left) == *(t.root->left->right)) {
+                if (proof[i].root->op == "->" && *(proof[i].root->right) == *(t.root->right) && equal_axiom_(proof[i].root->left, t.root->left->right, match, t.root->left->left->value)) {
                     if (assumptions.size() == 0)
                         end_proof.push_back(t.value);
                     else
@@ -729,7 +730,7 @@ struct global_parser {
                 end_proof.push_back(pr[i]);
             g = t.root->right;
             end_proof.push_back("((" + a.value + ")&(" + b->value + "))->(" + g->value + ")");
-            ass = "((" + a.value + ")&(" + b->value + ")->(" + g->value + ")," + a.value + "," + b->value + "|-" + g->value;
+            ass = "((" + a.value + ")&(" + b->value + "))->(" + g->value + ")," + a.value + "," + b->value + "|-" + g->value;
             global_parser tmp3(ass);
             std::vector<std::string> pr2;
             pr2.push_back("(" + a.value + ")->(" + b->value + ")->((" + a.value + ")&(" + b->value + "))");
@@ -740,7 +741,7 @@ struct global_parser {
             pr2.push_back("((" + a.value + ")&(" + b->value + "))->(" + g->value + ")");
             pr2.push_back(g->value);
             pr2 = tmp3.parse_add_proof(pr2);
-            ass = "((" + a.value + ")&(" + b->value + ")->(" + g->value + ")," + a.value + "|-(" + b->value + ")->(" + g->value + ")";
+            ass = "((" + a.value + ")&(" + b->value + "))->(" + g->value + ")," + a.value + "|-(" + b->value + ")->(" + g->value + ")";
             global_parser tmp4(ass);
             pr2 = tmp4.parse_add_proof(pr2);
             ass = "((" + a.value + ")&(" + b->value + ")->(" + g->value + ")""|-(" + a.value + ")->(" + b->value + ")->(" + g->value + ")";
@@ -751,7 +752,7 @@ struct global_parser {
                 end_proof.push_back(pr2[i]);
             end_proof.push_back(t.value);
         } else if (t.root->left->op == "?") {
-
+            
         }
     }
     bool equal_axiom(expression_parser ex, expression_parser ax) {
