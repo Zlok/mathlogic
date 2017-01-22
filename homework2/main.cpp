@@ -25,27 +25,7 @@ struct expression {
     }
 
     bool operator==(expression other) {
-        if (left == NULL && right == NULL)
-            return (op == other.op && other.left == NULL && other.right == NULL && value == other.value);
-        if (op != other.op)
-            return false;
-        if (left == NULL && other.left != NULL)
-            return false;
-        if (left != NULL && other.left == NULL)
-            return false;
-        if (right == NULL && other.right != NULL)
-            return false;
-        if (right != NULL && other.right == NULL)
-            return false;
-        if (terms.size() != other.terms.size())
-            return false;
-        if (terms.size() == 0)
-            return ((left == NULL || *left == *(other.left)) && (right == NULL || *right == *(other.right)));
-        size_t tmp = terms.size();
-        for (size_t i = 0; i < tmp; i++)
-            if (!(*(terms[i]) == *(other.terms[i])))
-                return false;
-        return ((left == NULL || *left == *(other.left)) && (right == NULL || *right == *(other.right)));
+        return value == other.value;
     }
 
     void draw() {
@@ -108,9 +88,9 @@ struct disjunction : expression {
 
 struct conjunction : expression {
    conjunction(std::shared_ptr<expression> l, std::shared_ptr<expression> r) : expression() {
-        left = l;
-        right = r;
-        op = "&";
+       left = l;
+       right = r;
+       op = "&";
        value = "(" + l->value + ")&(" + r->value + ")";
     }
 };
@@ -228,14 +208,12 @@ struct expression_parser {
     }
     expression_parser(expression_parser const& other) : value(other.value), root(other.root) {
     }
+
     bool operator==(expression_parser other) {
         return (*root == *(other.root));
     }
+
     void parse() {
-        if (value.size() == 0) {
-            std::cout << "Пустая строка!" << std::endl;
-            root = std::shared_ptr<expression>(new expression());
-        }
         root = parse_implication(parse_disjunction(parse_conjunction(parse_unary())));
     }
 
@@ -447,14 +425,7 @@ struct global_parser {
         axioms.push_back(expression_parser("a*b\'=a*b+a"));
         //axioms.push_back(expression_parser("@xA(x)->A(q)")); // q свободно в А
         //axioms.push_back(expression_parser("A(q)->?xA(x)")); // q свободно в А
-        //axioms.push_back(expression_parser("A(0)&@x(A(x)->A(x'))->A(y)")); // x свободно в А
-    }
-    void draw_axioms() {
-        size_t tmp = axioms.size();
-        for (size_t i = 0; i < tmp; i++) {
-            axioms[i].root->draw();
-            std::cout << std::endl;
-        }
+        //axioms.push_back(expression_parser("A(0)&@x(A(x)->A(x'))->A(x)")); // x свободно в А
     }
 
     void parse_assump_and_final() {
@@ -484,21 +455,15 @@ struct global_parser {
         }
         final = expression_parser(tmp);
     }
-    void draw_assump() {
-        size_t tmp = assumptions.size();
-        for (size_t i = 0; i < tmp; i++) {
-            assumptions[i].root->draw();
-            std::cout << std::endl;
-        }
-    }
 
     void parse_proof() {
         std::string s;
         while (getline(std::cin, s))
             if (s != "") {
                 proof.push_back(expression_parser(s));
-                if(!check()) {
-                    std::cout << "Вывод некоректен начиная с формулы номер " << proof.size() << std::endl;
+                std::pair<bool, std::string> t = check();
+                if(!t.first) {
+                    std::cout << "Вывод некоректен начиная с формулы номер " << proof.size() << t.second << std::endl;
                     return;
                 }
             }
@@ -536,6 +501,7 @@ struct global_parser {
         }
         final = expression_parser(tmp);
     }
+
     std::vector<std::string> parse_add_proof(std::vector<std::string> t) {
         size_t tmp = t.size();
         std::string s;
@@ -543,7 +509,8 @@ struct global_parser {
             s = t[i];
             if (s != "") {
                 proof.push_back(expression_parser(s));
-                if (!check()) {
+                std::pair<bool, std::string> miy = check();
+                if (!miy.first) {
                     break;
                 }
             }
@@ -553,16 +520,20 @@ struct global_parser {
         }
     }
 
-    bool check() {
+    std::pair<bool, std::string> check() {
         if (is_assump())
-            return true;
+            return std::make_pair(true, "");
         if (is_axiom())
-            return true;
+            return std::make_pair(true, "");
         if (is_MP())
-            return true;
-        if (is_rule())
-            return true;
-        return false;
+            return std::make_pair(true, "");
+        std::pair<bool, std::string> miy = is_rule();
+        if (miy.first || miy.second != "")
+            return miy;
+        miy = is_axiom_for_free();
+        if (miy.first || miy.second != "")
+            return miy;
+        return std::make_pair(false, "");
     }
 
     bool is_assump() {
@@ -606,62 +577,6 @@ struct global_parser {
                 end_proof.push_back("("+assumptions[assumptions.size() - 1].value+")->("+t.value+")");
                 return true;
             }
-
-        if (t.root->op == "->") {
-            if (t.root->left->op == "@") {
-                std::map< std::shared_ptr<expression>, std::shared_ptr<expression> > match;
-                if (equal_axiom_(t.root->right, t.root->left->right, match, t.root->left->left->value)) {
-                    if (assumptions.size() == 0) {
-                        end_proof.push_back(t.value);
-                        return true;
-                    }
-                    end_proof.push_back(t.value);
-                    end_proof.push_back("("+t.value+")->("+assumptions[assumptions.size() - 1].value+")->("+t.value+")");
-                    end_proof.push_back("("+assumptions[assumptions.size() - 1].value+")->("+t.value+")");
-                    return true;
-                }
-            } else if (t.root->right->op == "?") {
-                std::map< std::shared_ptr<expression>, std::shared_ptr<expression> > match;
-                if (equal_axiom_(t.root->left, t.root->right->right, match, t.root->right->left->value)) {
-                    if (assumptions.size() == 0) {
-                        end_proof.push_back(t.value);
-                        return true;
-                    }
-                    end_proof.push_back(t.value);
-                    end_proof.push_back("("+t.value+")->("+assumptions[assumptions.size() - 1].value+")->("+t.value+")");
-                    end_proof.push_back("("+assumptions[assumptions.size() - 1].value+")->("+t.value+")");
-                    return true;
-                }
-            } else if (t.root->left->op == "&" && t.root->left->right->op == "@" && t.root->left->right->right->op == "->") {
-                std::map< std::shared_ptr<expression>, std::shared_ptr<expression> > match;
-                if (equal_axiom_(t.root->left->right->right->right,
-                                 t.root->left->right->right->left,
-                                 match, t.root->left->right->left->value)) {
-                    std::map< std::shared_ptr<expression>, std::shared_ptr<expression> >::iterator it = match.begin();
-                    for (it; it != match.end(); it++)
-                        if (*(it->first) == *(t.root->left->right->left)) {
-                            expression_parser k1 = expression_parser("("+t.root->left->right->left->value + ")\'");
-                            expression k2 = *(it->second);
-                            if (!(k2 == *(k1.root)))
-                                return false;
-                        }
-                    //*(match[t.root->left->right->left]) == *(expression_parser("("+t.root->left->right->left->value + ")\'").root)
-                    std::map< std::shared_ptr<expression>, std::shared_ptr<expression> > match2;
-                    if (equal_axiom_(t.root->left->left, t.root->right, match2, t.root->right->terms[0]->value)) {
-                        if (assumptions.size() == 0) {
-                            end_proof.push_back(t.value);
-                            return true;
-                        }
-                        end_proof.push_back(t.value);
-                        end_proof.push_back(
-                                "(" + t.value + ")->(" + assumptions[assumptions.size() - 1].value + ")->(" + t.value +
-                                ")");
-                        end_proof.push_back("(" + assumptions[assumptions.size() - 1].value + ")->(" + t.value + ")");
-                        return true;
-                    }
-                }
-            }
-        }
         return false;
     }
 
@@ -693,31 +608,119 @@ struct global_parser {
         return false;
     }
 
-    bool is_rule() {
+    std::pair<bool, std::string> is_rule() {
         expression_parser t = proof[proof.size() - 1];
         std::map< std::shared_ptr<expression>, std::shared_ptr<expression> > match;
         if (t.root->op == "->" && t.root->right->op == "@") {
             size_t tmp = proof.size();
             for (size_t i = 0; i < tmp; i++)
                 if (proof[i].root->op == "->" && *(proof[i].root->left) == *(t.root->left) && equal_axiom_(proof[i].root->right, t.root->right->right, match, t.root->right->left->value)) {
+                    if (!check_free(t.root->right->right, t.root->right->left->value))
+                        return std::make_pair(false, ": используется правило с квантором по переменной" + t.root->right->left->value + ", входящей свободно в допущение " + t.root->right->right->value + ".");
                     if (assumptions.size() == 0)
                         end_proof.push_back(t.value);
                     else
                         add_to_end_proof(i);
-                    return true;
+                    return std::make_pair(true, "");
                 }
         } else if (t.root->op == "->" && t.root->left->op == "?") {
             size_t tmp = proof.size();
             for (size_t i = 0; i < tmp; i++)
                 if (proof[i].root->op == "->" && *(proof[i].root->right) == *(t.root->right) && equal_axiom_(proof[i].root->left, t.root->left->right, match, t.root->left->left->value)) {
+                    if (!check_free(t.root->left->right, t.root->left->left->value))
+                        return std::make_pair(false, ": используется правило с квантором по переменной" + t.root->left->left->value + ", входящей свободно в допущение " + t.root->left->right->value + ".");
                     if (assumptions.size() == 0)
                         end_proof.push_back(t.value);
                     else
                         add_to_end_proof(i);
-                    return true;
+                    return std::make_pair(true, "");
                 }
         }
+        return std::make_pair(false, "");
+    }
+
+    std::pair<bool, std::string> is_axiom_for_free() {
+        expression_parser t = proof[proof.size() - 1];
+        if (t.root->op == "->") {
+            if (t.root->left->op == "@") {
+                std::map< std::shared_ptr<expression>, std::shared_ptr<expression> > match;
+                if (equal_axiom_(t.root->right, t.root->left->right, match, t.root->left->left->value)) {
+                    if (!check_free(t.root->left->right, match[t.root->left->left], t.root->left->left->value))
+                        return std::make_pair(false, ": терм " + match[t.root->left->left]->value + "не свободен для подстановки в формулу " + t.root->left->right->value + "вместо переменной " + t.root->left->left->value + ".");
+                    if (assumptions.size() == 0) {
+                        end_proof.push_back(t.value);
+                        return std::make_pair(true, "");
+                    }
+                    end_proof.push_back(t.value);
+                    end_proof.push_back("("+t.value+")->("+assumptions[assumptions.size() - 1].value+")->("+t.value+")");
+                    end_proof.push_back("("+assumptions[assumptions.size() - 1].value+")->("+t.value+")");
+                    return std::make_pair(true, "");
+                }
+            } else if (t.root->right->op == "?") {
+                std::map< std::shared_ptr<expression>, std::shared_ptr<expression> > match;
+                if (equal_axiom_(t.root->left, t.root->right->right, match, t.root->right->left->value)) {
+                    if (!check_free(t.root->right->right, match[t.root->right->left], t.root->right->left->value))
+                        return std::make_pair(false, ": терм " + match[t.root->right->left]->value + "не свободен для подстановки в формулу " + t.root->right->right->value + "вместо переменной " + t.root->right->left->value + ".");
+                    if (assumptions.size() == 0) {
+                        end_proof.push_back(t.value);
+                        return std::make_pair(true, "");
+                    }
+                    end_proof.push_back(t.value);
+                    end_proof.push_back("("+t.value+")->("+assumptions[assumptions.size() - 1].value+")->("+t.value+")");
+                    end_proof.push_back("("+assumptions[assumptions.size() - 1].value+")->("+t.value+")");
+                    return std::make_pair(true, "");
+                }
+            } else if (t.root->left->op == "&" && t.root->left->right->op == "@" && t.root->left->right->right->op == "->") {
+                std::map< std::shared_ptr<expression>, std::shared_ptr<expression> > match;
+                if (equal_axiom_(t.root->left->right->right->right,
+                                 t.root->left->right->right->left,
+                                 match, t.root->left->right->left->value)) {
+                    std::map< std::shared_ptr<expression>, std::shared_ptr<expression> >::iterator it = match.begin();
+                    for (it; it != match.end(); it++)
+                        if (*(it->first) == *(t.root->left->right->left)) {
+                            expression_parser k1 = expression_parser("("+t.root->left->right->left->value + ")\'");
+                            expression k2 = *(it->second);
+                            if (!(k2 == *(k1.root)))
+                                return std::make_pair(false, "");
+                        }
+                    //*(match[t.root->left->right->left]) == *(expression_parser("("+t.root->left->right->left->value + ")\'").root)
+                    std::map< std::shared_ptr<expression>, std::shared_ptr<expression> > match2;
+                    if (equal_axiom_(t.root->left->left, t.root->right, match2, t.root->right->terms[0]->value)) {
+                        if (!check_free(t.root->left->right->right->left, t.root->left->right->left->value))
+                            return std::make_pair(false, ": переменная " + t.root->left->right->left->value + " входит свободно в формулу " + t.root->left->right->right->left->value + ".");
+                        if (assumptions.size() == 0) {
+                            end_proof.push_back(t.value);
+                            return std::make_pair(true, "");
+                        }
+                        end_proof.push_back(t.value);
+                        end_proof.push_back(
+                                "(" + t.value + ")->(" + assumptions[assumptions.size() - 1].value + ")->(" + t.value +
+                                ")");
+                        end_proof.push_back("(" + assumptions[assumptions.size() - 1].value + ")->(" + t.value + ")");
+                        return std::make_pair(true, "");
+                    }
+                }
+            }
+        }
+        return std::make_pair(false, "");
+    }
+
+    bool check_free(std::shared_ptr<expression> ex, std::string v) {
+        if (ex->op == "")
+            return true;
+        if (ex->op == "@" || ex->op == "?") {
+            if (ex->left->value == v)
+                return false;
+            else
+                return check_free(ex->right, v);
+        } else
+            if (ex->right == NULL || check_free(ex->right, v))
+                return (ex->left == NULL || check_free(ex->left, v));
         return false;
+    }
+
+    bool check_free(std::shared_ptr<expression> ex, std::shared_ptr<expression> ter, std::string v) {
+
     }
 
     void add_to_end_proof(size_t id) {
