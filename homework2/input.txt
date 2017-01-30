@@ -1,4 +1,2 @@
-W|-W
-@x(@xP(x)&Q(x))->@xP(x)&Q(x)
-@x(@xP(x)&Q(x))->@x(@xP(x)&Q(x))
-W
+A|-A
+A
