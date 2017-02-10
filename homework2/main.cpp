@@ -441,25 +441,25 @@ struct global_parser {
         axioms.push_back(expression_parser(s)); //8
         s = "(a->b)->(a->!b)->!a";
         axioms.push_back(expression_parser(s)); //9
-        s = "a->!a->b";
+        s = "!!a->a";
+        axioms.push_back(expression_parser(s)); //10
 
-        axioms.push_back(expression_parser(s)); //1
         s = "a=b->a\'=b\'";
-        axioms.push_back(expression_parser(s)); //2
+        axioms.push_back(expression_parser(s)); //1
         s = "a=b->a=c->b=c";
-        axioms.push_back(expression_parser(s)); //3
+        axioms.push_back(expression_parser(s)); //2
         s = "a\'=b\'->a=b";
-        axioms.push_back(expression_parser(s)); //4
+        axioms.push_back(expression_parser(s)); //3
         s = "!(a\'=0)";
-        axioms.push_back(expression_parser(s)); //5
+        axioms.push_back(expression_parser(s)); //4
         s = "a+b\'=(a+b)\'";
-        axioms.push_back(expression_parser(s)); //6
+        axioms.push_back(expression_parser(s)); //5
         s = "a+0=a";
-        axioms.push_back(expression_parser(s)); //7
+        axioms.push_back(expression_parser(s)); //6
         s = "a*0=0";
-        axioms.push_back(expression_parser(s)); //8
+        axioms.push_back(expression_parser(s)); //7
         s = "a*b\'=a*b+a";
-        axioms.push_back(expression_parser(s)); //9
+        axioms.push_back(expression_parser(s)); //8
         //axioms.push_back(expression_parser("@xA(x)->A(q)")); // q свободно в А
         //axioms.push_back(expression_parser("A(q)->?xA(x)")); // q свободно в А
         //axioms.push_back(expression_parser("A(0)&@x(A(x)->A(x'))->A(x)")); // x свободно в А
@@ -604,7 +604,7 @@ struct global_parser {
 
     bool is_axiom() {
         expression_parser t = proof[proof.size() - 1];
-        for (size_t i = 0; i < 9; i++)
+        for (size_t i = 0; i < 10; i++)
             if (equal_axiom(t, axioms[i])) {
                 if (assumptions.size() == 0) {
                     end_proof.push_back(t.value);
@@ -615,7 +615,7 @@ struct global_parser {
                 end_proof.push_back("("+assumptions[assumptions.size() - 1].value+")->("+t.value+")");
                 return true;
             }
-        for (size_t i = 9; i < 18; i++)
+        for (size_t i = 10; i < 18; i++)
             if (*(t.root) == *(axioms[i].root)) {
                 if (assumptions.size() == 0) {
                     end_proof.push_back(t.value);
@@ -665,7 +665,7 @@ struct global_parser {
                 std::map<std::shared_ptr<expression>, std::shared_ptr<expression> > match;
                 if (proof[i].root->op == "->" && *(proof[i].root->left) == *(t.root->left) &&
                     equal_axiom_(proof[i].root->right, t.root->right->right, match, t.root->right->left->value)) {
-                    if (check_free(t.root->right->right, t.root->right->left->value))
+                    if (check_free(t.root->left, t.root->right->left->value))
                         return std::make_pair(false, ": используется правило с квантором по переменной " +
                                                      t.root->right->left->value + ", входящей свободно в допущение " +
                                                      t.root->right->right->value + ".");
@@ -682,7 +682,7 @@ struct global_parser {
                 std::map<std::shared_ptr<expression>, std::shared_ptr<expression> > match;
                 if (proof[i].root->op == "->" && *(proof[i].root->right) == *(t.root->right) &&
                     equal_axiom_(proof[i].root->left, t.root->left->right, match, t.root->left->left->value)) {
-                    if (check_free(t.root->left->right, t.root->left->left->value))
+                    if (check_free(t.root->right, t.root->left->left->value))
                         return std::make_pair(false, ": используется правило с квантором по переменной " +
                                                      t.root->left->left->value + ", входящей свободно в допущение " +
                                                      t.root->left->right->value + ".");
@@ -787,11 +787,11 @@ struct global_parser {
     }
 
     bool check_free(std::shared_ptr<expression> ex, std::string v) {
-        return !(ex->has_quantif_for_variable(v));
+        return (ex->has_variable(v) && !ex->has_quantif_for_variable(v));
     }
 
     bool check_free(std::shared_ptr<expression> ex, std::shared_ptr<expression> ter, std::string v) {
-        if (ex->op == "@" || ex->op == "?" && ex->right->has_variable(v)) {
+        if ((ex->op == "@" || ex->op == "?") && ex->right->has_variable(v)) {
             std::vector<std::string> value_in_ter;
             ter->get_free_variable(value_in_ter);
             size_t n = value_in_ter.size();
@@ -803,6 +803,7 @@ struct global_parser {
             return false;
         if (ex->right != NULL && !check_free(ex->right, ter, v))
             return false;
+    //    return ex->has_variable(v);
         return true;
     }
 
