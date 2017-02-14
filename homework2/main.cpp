@@ -664,11 +664,11 @@ struct global_parser {
             for (size_t i = 0; i < tmp; i++) {
                 std::map<std::shared_ptr<expression>, std::shared_ptr<expression> > match;
                 if (proof[i].root->op == "->" && *(proof[i].root->left) == *(t.root->left) &&
-                    equal_axiom_(proof[i].root->right, t.root->right->right, match, t.root->right->left->value)) {
-                    if (check_free(t.root->left, t.root->right->left->value))
+                    equal_axiom_(proof[i].root->right, t.root->right->right, match, t.root->right->left)) {
+                    if (t.root->left->has_variable(t.root->right->left->value) && check_free(t.root->left, t.root->right->left->value))
                         return std::make_pair(false, ": используется правило с квантором по переменной " +
                                                      t.root->right->left->value + ", входящей свободно в допущение " +
-                                                     t.root->right->right->value + ".");
+                                                     t.root->left->value + ".");
                     if (assumptions.size() == 0)
                         end_proof.push_back(t.value);
                     else
@@ -676,16 +676,17 @@ struct global_parser {
                     return std::make_pair(true, "");
                 }
             }
-        } else if (t.root->op == "->" && t.root->left->op == "?") {
+        }
+        if (t.root->op == "->" && t.root->left->op == "?") {
             size_t tmp = proof.size();
             for (size_t i = 0; i < tmp; i++) {
                 std::map<std::shared_ptr<expression>, std::shared_ptr<expression> > match;
                 if (proof[i].root->op == "->" && *(proof[i].root->right) == *(t.root->right) &&
-                    equal_axiom_(proof[i].root->left, t.root->left->right, match, t.root->left->left->value)) {
-                    if (check_free(t.root->right, t.root->left->left->value))
+                    equal_axiom_(proof[i].root->left, t.root->left->right, match, t.root->left->left)) {
+                    if (t.root->right->has_variable(t.root->left->left->value) && check_free(t.root->right, t.root->left->left->value))
                         return std::make_pair(false, ": используется правило с квантором по переменной " +
                                                      t.root->left->left->value + ", входящей свободно в допущение " +
-                                                     t.root->left->right->value + ".");
+                                                     t.root->right->value + ".");
                     if (assumptions.size() == 0)
                         end_proof.push_back(t.value);
                     else
@@ -702,12 +703,12 @@ struct global_parser {
         if (t.root->op == "->") {
             if (t.root->left->op == "@") {
                 std::map< std::shared_ptr<expression>, std::shared_ptr<expression> > match;
-                if (equal_axiom_(t.root->right, t.root->left->right, match, t.root->left->left->value)) {
+                if (equal_axiom_(t.root->right, t.root->left->right, match, t.root->left->left)) {
                     std::map< std::shared_ptr<expression>, std::shared_ptr<expression> >::iterator it = match.begin();
                     for (;it != match.end(); it++)
                         if (*(it->first) == *(t.root->left->left))
                             break;
-                    if (!check_free(t.root->left->right, it->second, t.root->left->left->value))
+                    if (it != match.end() && !check_free(t.root->left->right, it->second, t.root->left->left->value))
                         return std::make_pair(false, ": терм " + it->second->value + " не свободен для подстановки в формулу " + t.root->left->right->value + " вместо переменной " + t.root->left->left->value + ".");
                     if (assumptions.size() == 0) {
                         end_proof.push_back(t.value);
@@ -718,14 +719,15 @@ struct global_parser {
                     end_proof.push_back("("+assumptions[assumptions.size() - 1].value+")->("+t.value+")");
                     return std::make_pair(true, "");
                 }
-            } else if (t.root->right->op == "?") {
+            }
+            if (t.root->right->op == "?") {
                 std::map< std::shared_ptr<expression>, std::shared_ptr<expression> > match;
-                if (equal_axiom_(t.root->left, t.root->right->right, match, t.root->right->left->value)) {
+                if (equal_axiom_(t.root->left, t.root->right->right, match, t.root->right->left)) {
                     std::map< std::shared_ptr<expression>, std::shared_ptr<expression> >::iterator it = match.begin();
                     for (;it != match.end(); it++)
                         if (*(it->first) == *(t.root->right->left))
                             break;
-                    if (!check_free(t.root->right->right, it->second, t.root->right->left->value))
+                    if (it != match.end() && !check_free(t.root->right->right, it->second, t.root->right->left->value))
                         return std::make_pair(false, ": терм " + it->second->value + " не свободен для подстановки в формулу " + t.root->right->right->value + " вместо переменной " + t.root->right->left->value + ".");
                     if (assumptions.size() == 0) {
                         end_proof.push_back(t.value);
@@ -736,13 +738,14 @@ struct global_parser {
                     end_proof.push_back("("+assumptions[assumptions.size() - 1].value+")->("+t.value+")");
                     return std::make_pair(true, "");
                 }
-            } else if (t.root->left->op == "&" && t.root->left->right->op == "@" && t.root->left->right->right->op == "->") {
+            }
+            if (t.root->left->op == "&" && t.root->left->right->op == "@" && t.root->left->right->right->op == "->") {
                 std::map< std::shared_ptr<expression>, std::shared_ptr<expression> > match;
                 if (equal_axiom_(t.root->left->right->right->right,
                                  t.root->left->right->right->left,
-                                 match, t.root->left->right->left->value)) {
+                                 match, t.root->left->right->left)) {
                     std::map< std::shared_ptr<expression>, std::shared_ptr<expression> >::iterator it = match.begin();
-                    for (it; it != match.end(); it++)
+                    for (; it != match.end(); it++)
                         if (*(it->first) == *(t.root->left->right->left)) {
                             std::string st = "(" + t.root->left->right->left->value + ")\'";
                             expression_parser k1 = expression_parser(st);
@@ -752,20 +755,20 @@ struct global_parser {
                         }
                     //*(match[t.root->left->right->left]) == *(expression_parser("("+t.root->left->right->left->value + ")\'").root)
                     std::map< std::shared_ptr<expression>, std::shared_ptr<expression> > match2, match3;
-                    if (equal_axiom_(t.root->left->left, t.root->left->right->right->left, match2, t.root->left->right->left->value)) {
+                    if (equal_axiom_(t.root->left->left, t.root->left->right->right->left, match2, t.root->left->right->left)) {
                         std::shared_ptr<expression> zer;
                         it = match2.begin();
-                        for (it; it != match2.end(); it++)
+                        for (; it != match2.end(); it++)
                             if (*(it->first) == *(t.root->left->right->left)) {
                                 zer = it->second;
                                 break;
                             }
 
-                        if (equal_axiom_(t.root->left->left, t.root->right, match3, zer->value)) {
+                        if (equal_axiom_(t.root->left->left, t.root->right, match3, zer)) {
                             if (!check_free(t.root->left->right->right->left, t.root->left->right->left->value))
                                 return std::make_pair(false, ": переменная " + t.root->left->right->left->value +
                                                              " входит свободно в формулу " +
-                                                             t.root->left->right->right->left->value + ".");
+                                                             t.root->left->right->right->right->value + ".");
                             if (assumptions.size() == 0) {
                                 end_proof.push_back(t.value);
                                 return std::make_pair(true, "");
@@ -787,7 +790,12 @@ struct global_parser {
     }
 
     bool check_free(std::shared_ptr<expression> ex, std::string v) {
-        return (ex->has_variable(v) && !ex->has_quantif_for_variable(v));
+        if (ex->op == "@" || ex->op == "?")
+            if (ex->left->has_variable(v))
+                return false;
+        if (ex->right != NULL && !check_free(ex->right, v))
+            return (ex->left == NULL || check_free(ex->left, v));
+        return true;
     }
 
     bool check_free(std::shared_ptr<expression> ex, std::shared_ptr<expression> ter, std::string v) {
@@ -796,7 +804,7 @@ struct global_parser {
             ter->get_free_variable(value_in_ter);
             size_t n = value_in_ter.size();
             for (size_t i = 0; i < n; i++)
-                if (ex->left->value == value_in_ter[i] && !ex->right->has_variable(value_in_ter[i]))
+                if (ex->left->value == value_in_ter[i])
                     return false;
         }
         if (ex->left != NULL && !check_free(ex->left, ter, v))
@@ -806,7 +814,6 @@ struct global_parser {
     //    return ex->has_variable(v);
         return true;
     }
-
 
     void add_to_end_proof(size_t id) {
         expression_parser t = proof[proof.size() - 1], a = assumptions[assumptions.size() - 1];
@@ -907,7 +914,7 @@ struct global_parser {
     bool equal_axiom(std::shared_ptr<expression> ex, std::shared_ptr<expression> ax, std::map< std::shared_ptr<expression>, std::shared_ptr<expression> >& match) {
         if (ax->left == NULL && ax->right == NULL) {
             std::map< std::shared_ptr<expression>, std::shared_ptr<expression> >::iterator it = match.begin();
-            for (it; it != match.end(); it++)
+            for (; it != match.end(); it++)
                 if (*(it->first) == *ax) {
                 return (*(it->second) == *ex);
             }
@@ -931,32 +938,15 @@ struct global_parser {
             return false;
         }
     }
-    bool equal_axiom_(std::shared_ptr<expression> ex, std::shared_ptr<expression> ax, std::map< std::shared_ptr<expression>, std::shared_ptr<expression> >& match, std::string v) {
-        if (ax->left == NULL && ax->right == NULL) {
-            if (ax->value == v || ax->value == ex->value) {
-                std::map<std::shared_ptr<expression>, std::shared_ptr<expression> >::iterator it = match.find(ax);
-                if (it == match.end()) {
-                    match.insert(std::make_pair(ax, ex));
-                    return true;
-                } else {
-                    return (*match[ax] == *ex);
-                }
-            }
-            return false;
-        } else {
-            if (ex->op == ax->op)
-                if (ex->op != "") {
-                    if (ex->left == NULL || equal_axiom(ex->left, ax->left, match))
-                        if (ex->right == NULL || equal_axiom(ex->right, ax->right, match))
-                                return true;
-                } else
-                    if (ax->left->value == ex->left->value && ax->terms.size() == ex->terms.size()) {
-                        size_t  tmp = ex->terms.size();
-                        for (size_t i = 0; i < tmp; i++)
-                            if (!equal_axiom_(ex->terms[i], ax->terms[i], match, v))
-                                return false;
-                        return true;
-                    }
+    bool equal_axiom_(std::shared_ptr<expression> ex, std::shared_ptr<expression> ax, std::map< std::shared_ptr<expression>, std::shared_ptr<expression> >& match, std::shared_ptr<expression> v) {
+        bool f = equal_axiom(ex, ax, match);
+        if (f) {
+            auto it = match.begin();
+            for (; it != match.end(); it++)
+                if (!(*(it->first) == *v))
+                    if (!(*(it->first) == *(it->second)))
+                        return false;
+            return true;
         }
         return false;
     }
