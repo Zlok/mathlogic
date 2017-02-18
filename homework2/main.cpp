@@ -69,7 +69,6 @@ struct implication : expression {
         value = "(" + l->value + ")->(" + r->value + ")";
     }
 };
-
 struct disjunction : expression {
     disjunction(shared_ptr<expression> l, shared_ptr<expression> r) : expression() {
         left = l;
@@ -78,7 +77,6 @@ struct disjunction : expression {
         value = "(" + l->value + ")|(" + r->value + ")";
     }
 };
-
 struct conjunction : expression {
     conjunction(shared_ptr<expression> l, shared_ptr<expression> r) : expression() {
         left = l;
@@ -87,7 +85,6 @@ struct conjunction : expression {
         value = "(" + l->value + ")&(" + r->value + ")";
     }
 };
-
 struct negation : expression {
     negation(shared_ptr<expression> l) : expression() {
         left = l;
@@ -95,13 +92,11 @@ struct negation : expression {
         value = "!(" + l->value + ")";
     }
 };
-
 struct variable : expression {
     variable(string v) : expression() {
         value = v;
     }
 };
-
 struct quantifier : expression {
     quantifier(char c, shared_ptr<expression> l, shared_ptr<expression> r) : expression() {
         left = l;
@@ -110,13 +105,11 @@ struct quantifier : expression {
         value = c + l->value + "(" + r->value + ")";
     }
 };
-
 struct name : expression {
     name(string v) : expression() {
         value = v;
     }
 };
-
 struct predication : expression {
     predication(shared_ptr<expression> l, vector< shared_ptr<expression> > t) : expression() {
         left = l;
@@ -131,7 +124,6 @@ struct predication : expression {
         }
     }
 };
-
 struct equality : expression {
     equality(shared_ptr<expression> l, shared_ptr<expression> r) : expression() {
         left = l;
@@ -140,7 +132,6 @@ struct equality : expression {
         value = "(" + l->value + ")=(" + r->value + ")";
     }
 };
-
 struct addition : expression {
     addition(shared_ptr<expression> l, shared_ptr<expression> r) : expression() {
         left = l;
@@ -149,7 +140,6 @@ struct addition : expression {
         value = "(" + l->value + ")+(" + r->value + ")";
     }
 };
-
 struct multiplication : expression {
     multiplication(shared_ptr<expression> l, shared_ptr<expression> r) : expression() {
         left = l;
@@ -158,15 +148,13 @@ struct multiplication : expression {
         value = "(" + l->value + ")*(" + r->value + ")";
     }
 };
-
-struct next : expression {
-    next(shared_ptr<expression> l) : expression() {
+struct next_ : expression {
+    next_(shared_ptr<expression> l) : expression() {
         left = l;
         op = "\'";
         value = "(" + l->value + ")\'";
     }
 };
-
 struct term : expression {
     term(shared_ptr<expression> l, vector< shared_ptr<expression> > t) : expression() {
         left = l;
@@ -181,7 +169,6 @@ struct term : expression {
         }
     }
 };
-
 struct zero : expression {
     zero() : expression() {
         value = "0";
@@ -373,7 +360,7 @@ private:
             return_char();
             return left;
         } else {
-            shared_ptr<expression> t = shared_ptr<expression>(new next(left));
+            shared_ptr<expression> t = shared_ptr<expression>(new next_(left));
             return parse_value(t);
         }
     }
@@ -474,6 +461,7 @@ struct global_parser {
                 pair<bool, string> tmp = check();
                 if (!tmp.first) {
                     fout << "Вывод некорректен начиная с формулы номер " << proof.size() << " " << tmp.second << endl;
+                    cout << proof.size() << " : " << proof[proof.size() - 1].value << endl;
                     return;
                 }
             }
@@ -482,7 +470,7 @@ struct global_parser {
         if (proof[proof.size() - 1] == final) {
             size_t tmp = end_proof.size();
             for (size_t i = 0; i < tmp; i++)
-                cout << end_proof[i] << endl;
+                fout << end_proof[i] << endl;
         } else {
             cout << "Доказательство не окончено..." << endl;
         }
@@ -517,7 +505,7 @@ struct global_parser {
                 return true;
             }
         }
-        if (t == assumptions[tmp]) {
+        if (t == assumptions[tmp - 1]) {
             end_proof.push_back("(" + t.value + ")->(" + t.value + ")->(" + t.value + ")");
             end_proof.push_back("(" + t.value + ")->((" + t.value + ")->(" + t.value + "))->(" + t.value + ")");
             end_proof.push_back("((" + t.value + ")->(" + t.value + ")->(" + t.value + "))->(("
