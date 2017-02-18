@@ -644,14 +644,17 @@ struct global_parser {
             return 2;
         if ((ex->op == "@" || ex->op == "?") && ex->left->value == val)
             return 0;
+        if (ex->left == NULL && ex->right == NULL)
+            return 1;
         if (ex->right == NULL) {
             if (ex->terms.size() != 0) {
                 size_t tmp = ex->terms.size();
                 for (size_t i = 0; i < tmp; i++)
                     if (ex->terms[i]->has_variable(val))
                         return 1;
+                return 1;
             }
-            return ex->left->has_variable(val);
+            return check_free(ex->left, val);
         }
         int fl = check_free(ex->left, val), fr = check_free(ex->right, val);
         switch (fl) {
