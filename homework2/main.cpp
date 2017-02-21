@@ -809,6 +809,8 @@ struct global_parser {
     }
     bool check_free(shared_ptr<expression> ex, string ter, string val) {
         if ((ex->op == "@" || ex->op == "?") && ex->right->has_variable(val)) {
+            if (ex->left->value == val)
+                return true;
             vector<string> value_in_ter = get_values(ter);
             size_t n = value_in_ter.size();
             for (size_t i = 0; i < n; i++)
