@@ -780,6 +780,11 @@ struct global_parser {
                                 }
                             if (f && q == "0") {
                                 if (*(t.root->left->right->right->left) == *(t.root->right)) {
+                                    int w = check_free(t.root->left->right->right->left,
+                                                       t.root->left->right->left->value);
+                                    if (w != 1) {
+                                        return make_pair(false, "");
+                                    }
                                     if (assumptions.size() == 0) {
                                         end_proof.push_back(t.value);
                                         return make_pair(true, "");
