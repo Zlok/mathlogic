@@ -609,12 +609,18 @@ struct global_parser {
                         int f = check_free(t.root->left, t.root->right->left->value);
                         if (f == 1 || f == 3)
                             return make_pair(false, ": переменная " +
-                                                         t.root->right->left->value + " входит свободно в формулу " +
-                                                         t.root->left->value + ".");
+                                                    t.root->right->left->value + " входит свободно в формулу " +
+                                                    t.root->left->value + ".");
                         if (assumptions.size() == 0)
                             end_proof.push_back(t.value);
-                        else
+                        else {
+                            int k = check_free(assumptions[assumptions.size() - 1].root, t.root->right->left->value);
+                            if (k == 1 || k == 3)
+                                return make_pair(false, ": используется правило с квантором по переменной "
+                                                        + t.root->right->left->value + ", входящей свободно в допущение "
+                                                        + assumptions[assumptions.size() - 1].value + ".");
                             add_to_end_proof(i);
+                        }
                         return make_pair(true, "");
                     }
                 }
@@ -630,8 +636,14 @@ struct global_parser {
                                                          t.root->right->value + ".");
                         if (assumptions.size() == 0)
                             end_proof.push_back(t.value);
-                        else
+                        else {
+                            int k = check_free(assumptions[assumptions.size() - 1].root, t.root->left->left->value);
+                            if (k == 1 || k == 3)
+                                return make_pair(false, ": используется правило с квантором по переменной "
+                                                        + t.root->left->left->value + ", входящей свободно в допущение "
+                                                        + assumptions[assumptions.size() - 1].value + ".");
                             add_to_end_proof(i);
+                        }
                         return make_pair(true, "");
                     }
                 }
@@ -639,6 +651,8 @@ struct global_parser {
         }
         return make_pair(false, "");
     }
+
+    // return 0 -- связанна, 1 -- свободна, 2 -- не входит, 3 -- и то и то
     int check_free(shared_ptr<expression> ex, string val) {
         if (!ex->has_variable(val))
             return 2;
